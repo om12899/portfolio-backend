@@ -11,8 +11,8 @@ app.use(bodyParser.json()); // For JSON payloads
 
 // List of allowed origins
 const allowedOrigins = [
-  "http://localhost:5173", // Add your frontend domains here
-  "https://omthakkar.site",
+  "http://localhost:5173", // Local development
+  "https://omthakkar.site", // Production domains
   "https://www.omthakkar.site",
 ];
 
@@ -20,14 +20,15 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Check if the origin is in the list of allowed origins
       if (!origin || allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // Optional: if you need to allow credentials (cookies, authorization headers, etc.)
-    methods: ["GET", "POST", "OPTIONS"], // Allow methods for CORS
+    credentials: true, // Allow credentials (cookies, headers, etc.)
+    methods: ["GET", "POST", "OPTIONS"], // Allow methods
   })
 );
 
@@ -61,7 +62,7 @@ const formSchema = new mongoose.Schema({
 
 const Form = mongoose.model("Form", formSchema);
 
-// Routes
+// POST endpoint to handle form submissions
 app.post("/submit", async (req, res) => {
   try {
     const formData = new Form({
@@ -91,6 +92,7 @@ app.get("/responses", async (req, res) => {
   }
 });
 
+// Test endpoint
 app.get("/test", (req, res) => {
   res.json({ status: true });
 });
@@ -101,3 +103,4 @@ app.listen(9000, () => {
 });
 
 module.exports = app;
+as;
