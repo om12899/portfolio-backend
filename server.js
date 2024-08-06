@@ -80,7 +80,7 @@ app.post("/submit", async (req, res) => {
 // GET endpoint to retrieve all form submissions
 app.get("/responses", async (req, res) => {
   try {
-    const responses = await Form.find();
+    const responses = await Form.find().sort({ submittedDate: -1 });
     res.status(200).json(responses);
   } catch (err) {
     console.error(err);
