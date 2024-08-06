@@ -6,7 +6,7 @@ const app = express();
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json()); // Add this line if sending JSON payloads
+app.use(bodyParser.json()); // For parsing JSON payloads
 
 // Connect to MongoDB
 mongoose.connect(
@@ -23,18 +23,19 @@ db.once("open", function () {
   console.log("Connected to MongoDB");
 });
 
-// Define Schema and Model
+// Define Schema and Model with `submittedDate`
 const formSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   email: String,
   subject: String,
   content: String,
+  submittedDate: { type: Date, default: Date.now }, // Added field
 });
 
 const Form = mongoose.model("Form", formSchema);
 
-// Routes
+// POST endpoint to submit form data
 app.post("/submit", async (req, res) => {
   try {
     const formData = new Form({
@@ -64,7 +65,16 @@ app.get("/responses", async (req, res) => {
   }
 });
 
-// Start server
-app.listen(9000, () => {
-  console.log("Server is running on port 9000");
+// Test endpoint
+app.get("/test", (req, res) => {
+  res.json({ status: true });
 });
+
+// Start server
+if (require.main === module) {
+  app.listen(9000, () => {
+    console.log("Server is running on port 9000");
+  });
+}
+
+module.exports = app;
