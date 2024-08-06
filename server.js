@@ -10,7 +10,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json()); // For parsing JSON payloads
 
 // List of allowed origins
-const allowedOrigins = ["https://www.omthakkar.site", "https://omthakkar.site"];
+const allowedOrigins = [
+  "https://www.omthakkar.site",
+  "https://omthakkar.site",
+  "http://localhost:5173",
+];
 
 // CORS configuration
 app.use(
