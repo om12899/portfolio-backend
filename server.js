@@ -1,12 +1,32 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const app = express();
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json()); // For parsing JSON payloads
+
+// List of allowed origins
+const allowedOrigins = ["https://www.omthakkar.site", "https://omthakkar.site"];
+
+// CORS configuration
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        // Allow requests from the allowed origins
+        callback(null, true);
+      } else {
+        // Reject requests from non-allowed origins
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // Optional: if you need to allow credentials (cookies, authorization headers, etc.)
+  })
+);
 
 // Connect to MongoDB
 mongoose.connect(
