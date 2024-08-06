@@ -7,13 +7,13 @@ const app = express();
 
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json()); // For parsing JSON payloads
+app.use(bodyParser.json()); // For JSON payloads
 
 // List of allowed origins
 const allowedOrigins = [
-  "https://www.omthakkar.site",
+  "http://localhost:5173", // Add your frontend domains here
   "https://omthakkar.site",
-  "http://localhost:5173",
+  "https://www.omthakkar.site",
 ];
 
 // CORS configuration
@@ -21,16 +21,18 @@ app.use(
   cors({
     origin: function (origin, callback) {
       if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        // Allow requests from the allowed origins
         callback(null, true);
       } else {
-        // Reject requests from non-allowed origins
         callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true, // Optional: if you need to allow credentials (cookies, authorization headers, etc.)
+    methods: ["GET", "POST", "OPTIONS"], // Allow methods for CORS
   })
 );
+
+// Handle preflight requests
+app.options("*", cors());
 
 // Connect to MongoDB
 mongoose.connect(
@@ -47,19 +49,19 @@ db.once("open", function () {
   console.log("Connected to MongoDB");
 });
 
-// Define Schema and Model with `submittedDate`
+// Define Schema and Model
 const formSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   email: String,
   subject: String,
   content: String,
-  submittedDate: { type: Date, default: Date.now }, // Added field
+  submittedDate: { type: Date, default: Date.now },
 });
 
 const Form = mongoose.model("Form", formSchema);
 
-// POST endpoint to submit form data
+// Routes
 app.post("/submit", async (req, res) => {
   try {
     const formData = new Form({
@@ -89,16 +91,13 @@ app.get("/responses", async (req, res) => {
   }
 });
 
-// Test endpoint
 app.get("/test", (req, res) => {
   res.json({ status: true });
 });
 
 // Start server
-if (require.main === module) {
-  app.listen(9000, () => {
-    console.log("Server is running on port 9000");
-  });
-}
+app.listen(9000, () => {
+  console.log("Server is running on port 9000");
+});
 
 module.exports = app;
