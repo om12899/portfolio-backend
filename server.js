@@ -5,34 +5,60 @@ const cors = require("cors");
 
 const app = express();
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+// List of allowed origins
+const allowedOrigins = [
+  "http://localhost:5173", // Replace with your frontend URLs
+  "https://omthakkar.site",
+  "https://www.omthakkar.site",
+];
 
+// Middleware
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json()); // For parsing JSON payloads
+
+// CORS Configuration
 app.use(
   cors({
-    origin: "*", // Allow all origins for testing purposes
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
   })
 );
 
-mongoose
-  .connect(
-    "mongodb+srv://your-username:your-password@cluster0.mongodb.net/?retryWrites=true&w=majority",
-    { useNewUrlParser: true, useUnifiedTopology: true }
-  )
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("Error connecting to MongoDB:", err));
+// Connect to MongoDB
+mongoose.connect(
+  "mongodb+srv://om12899:vHtSIuJDOccdl1hC@cluster0.yja9wxl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+);
 
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error:"));
+db.once("open", function () {
+  console.log("Connected to MongoDB");
+});
+
+// Define Schema and Model with `submittedDate`
 const formSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   email: String,
   subject: String,
   content: String,
-  submittedDate: { type: Date, default: Date.now },
+  submittedDate: { type: Date, default: Date.now }, // Added field
 });
 
 const Form = mongoose.model("Form", formSchema);
 
+// POST endpoint to submit form data
 app.post("/submit", async (req, res) => {
   try {
     const formData = new Form({
@@ -42,26 +68,36 @@ app.post("/submit", async (req, res) => {
       subject: req.body.subject,
       content: req.body.content,
     });
+
     await formData.save();
     res.status(200).send("Data saved successfully.");
   } catch (err) {
-    console.error("Error saving data:", err);
+    console.error(err);
     res.status(500).send("Error saving data.");
   }
 });
 
+// GET endpoint to retrieve all form submissions
 app.get("/responses", async (req, res) => {
   try {
     const responses = await Form.find();
     res.status(200).json(responses);
   } catch (err) {
-    console.error("Error retrieving data:", err);
+    console.error(err);
     res.status(500).send("Error retrieving data.");
   }
 });
 
+// Test endpoint
 app.get("/test", (req, res) => {
   res.json({ status: true });
 });
+
+// Start server
+if (require.main === module) {
+  app.listen(9000, () => {
+    console.log("Server is running on port 9000");
+  });
+}
 
 module.exports = app;
