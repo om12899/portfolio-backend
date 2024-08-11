@@ -2,7 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 
+require("dotenv").config();
 const app = express();
 
 // List of allowed origins
@@ -32,13 +34,10 @@ app.use(
 );
 
 // Connect to MongoDB
-mongoose.connect(
-  "mongodb+srv://om12899:vHtSIuJDOccdl1hC@cluster0.yja9wxl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
-);
+mongoose.connect(process.env.MONGO_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
@@ -85,6 +84,23 @@ app.get("/responses", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).send("Error retrieving data.");
+  }
+});
+
+app.post("/check-password", (req, res) => {
+  const { password } = req.body;
+
+  if (password === process.env.LOGIN_KEY) {
+    // Create a JWT token
+    const token = jwt.sign(
+      { user: "authenticatedUser" },
+      process.env.LOGIN_KEY,
+      { expiresIn: "1h" }
+    );
+
+    return res.status(200).json({ message: "Password is correct!", token });
+  } else {
+    return res.status(400).json({ message: "Password is incorrect!" });
   }
 });
 
